@@ -1,0 +1,9 @@
+# 替换 yourdomain.com 为你的实际域名
+yourdomain.com {
+	encode gzip
+
+	# API 与静态资源统一反代到 Spring Boot
+	reverse_proxy app:8080
+}
+
+# admin.yourdomain.com 由 Cloudflare Pages 直接服务，不进此 Caddy

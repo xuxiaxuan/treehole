@@ -6,6 +6,7 @@
 # OS
 .DS_Store
 Thumbs.db
+nul
 
 # Env
 .env
@@ -13,7 +14,6 @@ Thumbs.db
 
 # Backend
 backend/target/
-backend/.mvn/
 backend/HELP.md
 
 # Frontend
@@ -24,3 +24,6 @@ dist/
 
 # Docker
 docker-data/
+
+# Temp / debug
+tmp/
