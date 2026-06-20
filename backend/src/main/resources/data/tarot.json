@@ -1,0 +1,32 @@
+{
+  "major": [
+    {"id": 0, "name": "愚者", "nameEn": "The Fool", "keywords": ["新开始","自由","冒险"], "upright": "纯真、新旅程、自由精神", "reversed": "鲁莽、冒险、缺乏远见"},
+    {"id": 1, "name": "魔术师", "nameEn": "The Magician", "keywords": ["创造力","意志","技艺"], "upright": "显化、创造、技巧", "reversed": "操纵、未发挥的才能"},
+    {"id": 2, "name": "女祭司", "nameEn": "The High Priestess", "keywords": ["直觉","神秘","潜意识"], "upright": "直觉、神秘、内在智慧", "reversed": "隐藏的动机、内心的声音"},
+    {"id": 3, "name": "皇后", "nameEn": "The Empress", "keywords": ["丰饶","母性","自然"], "upright": "丰饶、养育、丰盛", "reversed": "依赖、过度保护"},
+    {"id": 4, "name": "皇帝", "nameEn": "The Emperor", "keywords": ["权威","结构","控制"], "upright": "权威、结构、控制", "reversed": "专制、僵化"},
+    {"id": 5, "name": "教皇", "nameEn": "The Hierophant", "keywords": ["传统","信仰","教育"], "upright": "传统、精神指引", "reversed": "反叛、新方法"},
+    {"id": 6, "name": "恋人", "nameEn": "The Lovers", "keywords": ["爱情","选择","和谐"], "upright": "和谐、选择、结合", "reversed": "失衡、错误选择"},
+    {"id": 7, "name": "战车", "nameEn": "The Chariot", "keywords": ["意志","胜利","控制"], "upright": "胜利、意志、控制", "reversed": "失控、缺乏方向"},
+    {"id": 8, "name": "力量", "nameEn": "Strength", "keywords": ["勇气","耐心","温柔"], "upright": "勇气、内在力量", "reversed": "怀疑、软弱"},
+    {"id": 9, "name": "隐士", "nameEn": "The Hermit", "keywords": ["内省","孤独","智慧"], "upright": "内省、寻求真理", "reversed": "孤立、迷失"},
+    {"id": 10, "name": "命运之轮", "nameEn": "Wheel of Fortune", "keywords": ["命运","转变","循环"], "upright": "命运、转折", "reversed": "厄运、抗拒变化"},
+    {"id": 11, "name": "正义", "nameEn": "Justice", "keywords": ["公正","真相","因果"], "upright": "公正、真相", "reversed": "不公、逃避责任"},
+    {"id": 12, "name": "倒吊人", "nameEn": "The Hanged Man", "keywords": ["牺牲","视角","等待"], "upright": "牺牲、新视角", "reversed": "停滞、无谓牺牲"},
+    {"id": 13, "name": "死神", "nameEn": "Death", "keywords": ["结束","转变","重生"], "upright": "结束、转变", "reversed": "抗拒变化、停滞"},
+    {"id": 14, "name": "节制", "nameEn": "Temperance", "keywords": ["平衡","耐心","融合"], "upright": "平衡、节制", "reversed": "失衡、过度"},
+    {"id": 15, "name": "魔鬼", "nameEn": "The Devil", "keywords": ["束缚","诱惑","物质"], "upright": "束缚、成瘾", "reversed": "释放、恢复控制"},
+    {"id": 16, "name": "高塔", "nameEn": "The Tower", "keywords": ["突变","启示","破坏"], "upright": "突变、崩溃", "reversed": "避免灾难、恐惧改变"},
+    {"id": 17, "name": "星星", "nameEn": "The Star", "keywords": ["希望","灵感","宁静"], "upright": "希望、信念", "reversed": "绝望、失去信心"},
+    {"id": 18, "name": "月亮", "nameEn": "The Moon", "keywords": ["幻觉","潜意识","梦境"], "upright": "幻觉、直觉", "reversed": "释放恐惧、迷雾消散"},
+    {"id": 19, "name": "太阳", "nameEn": "The Sun", "keywords": ["喜悦","成功","活力"], "upright": "喜悦、成功", "reversed": "暂时阴霾、过度乐观"},
+    {"id": 20, "name": "审判", "nameEn": "Judgement", "keywords": ["重生","召唤","反省"], "upright": "重生、觉醒", "reversed": "自我怀疑、未吸取教训"},
+    {"id": 21, "name": "世界", "nameEn": "The World", "keywords": ["完成","成就","圆满"], "upright": "圆满、完成", "reversed": "未完成、停滞"}
+  ],
+  "minor": [
+    {"id": 22, "suit": "wands", "name": "权杖 Ace", "nameEn": "Ace of Wands", "keywords": ["灵感","新机会","激情"], "upright": "灵感、新机遇", "reversed": "延迟、缺乏动力"},
+    {"id": 23, "suit": "cups", "name": "圣杯 Ace", "nameEn": "Ace of Cups", "keywords": ["情感","新关系","怜悯"], "upright": "新情感、爱的萌芽", "reversed": "情感闭塞"},
+    {"id": 24, "suit": "swords", "name": "宝剑 Ace", "nameEn": "Ace of Swords", "keywords": ["清晰","新想法","真相"], "upright": "清晰、突破", "reversed": "混乱、错误判断"},
+    {"id": 25, "suit": "pentacles", "name": "星币 Ace", "nameEn": "Ace of Pentacles", "keywords": ["机会","繁荣","稳固"], "upright": "新机会、繁荣", "reversed": "错失机会"}
+  ]
+}

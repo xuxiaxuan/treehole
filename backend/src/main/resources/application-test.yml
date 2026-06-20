@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:treehole;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  sql:
+    init:
+      schema-locations: classpath:schema.sql
+      mode: always
+  # 测试环境排除 Ollama 自动装配，避免无 Ollama 服务时影响上下文加载
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.autoconfigure.ollama.OllamaChatAutoConfiguration
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+jwt:
+  secret: test-secret-must-be-at-least-32-characters-long-for-hs256
+  expiration: 604800
+
+# 测试默认走 NoopAiService（零网络依赖）
+ai:
+  enabled: false

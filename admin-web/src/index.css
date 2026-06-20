@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600;700&display=swap');
+
+/* 全局样式：与 web 端统一的温暖治愈森林系 */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background-color: #fdfaf6;
+  background-image: radial-gradient(circle at 15% 10%, rgba(61, 122, 77, 0.04) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(217, 126, 77, 0.03) 0%, transparent 45%);
+  background-attachment: fixed;
+  color: #2a3530;
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: rgba(61, 122, 77, 0.22);
+  color: #142a1c;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cdd6cb;
+  border-radius: 999px;
+  border: 2px solid #fdfaf6;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8fbd98;
+}
+
+/* 全局品牌字体类 */
+.font-serif-cn {
+  font-family: 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
+}
+
+/* 卡片光泽（与 web 端统一） */
+.card-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.card-sheen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 30%);
+  pointer-events: none;
+}
+
+/* 进入动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}

@@ -1,0 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background-color: #fdfaf6;
+    background-image: radial-gradient(circle at 15% 10%, rgba(61, 122, 77, 0.05) 0%, transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(217, 126, 77, 0.04) 0%, transparent 45%);
+    background-attachment: fixed;
+    color: #2a3530;
+    min-height: 100vh;
+  }
+
+  /* 选中文字配色 */
+  ::selection {
+    background-color: rgba(61, 122, 77, 0.22);
+    color: #142a1c;
+  }
+}
+
+@layer utilities {
+  /* 自定义滚动条 - 温柔质感 */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cdd6cb;
+    border-radius: 999px;
+    border: 2px solid #fdfaf6;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #8fbd98;
+  }
+
+  /* 文字渐变（森林墨绿） */
+  .text-gradient-forest {
+    background: linear-gradient(135deg, #3d7a4d 0%, #1f3f2a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* 卡片轻微提亮光泽 */
+  .card-sheen {
+    position: relative;
+    overflow: hidden;
+  }
+  .card-sheen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 30%);
+    pointer-events: none;
+  }
+
+  /* ===== 塔罗主题相关动画与工具类 ===== */
+
+  /* 翻牌光晕扩散：调用方传入 --tarot-glow 控制颜色 */
+  @keyframes tarot-glow {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    40% {
+      opacity: 0.9;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.8);
+    }
+  }
+
+  /* 金箔闪光（golden 主题用） */
+  @keyframes tarot-shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Wordle 错误抖动 */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  .animate-shake {
+    animation: shake 0.4s ease-in-out;
+  }
+
+  /* 弹幕从右向左滚动 */
+  @keyframes danmaku-scroll {
+    from { right: -300px; }
+    to { right: 100%; }
+  }
+
+  /* 植物摇曳：心情花园用，模拟微风 */
+  @keyframes sway {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+  }
+
+  /* 时间胶囊封印呼吸光晕 */
+  @keyframes capsule-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(155, 123, 184, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(155, 123, 184, 0);
+    }
+  }
+  .animate-capsule-pulse {
+    animation: capsule-pulse 2s ease-in-out infinite;
+  }
+
+  /* 共鸣信号：心跳脉冲 */
+  @keyframes echo-pulse {
+    0%, 100% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+  }
+  .animate-echo-pulse {
+    animation: echo-pulse 1.8s ease-in-out infinite;
+  }
+
+  /* 光晕环 utility：通过 inline style 设置 --tarot-glow */
+  .tarot-glow-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      circle at center,
+      var(--tarot-glow, rgba(255, 255, 255, 0.6)) 0%,
+      transparent 70%
+    );
+    opacity: 0;
+    z-index: 5;
+  }
+  .tarot-glow-ring.is-active {
+    animation: tarot-glow 0.9s ease-out forwards;
+  }
+
+  /* golden 主题牌背金箔流光叠加层 */
+  .tarot-shimmer-overlay {
+    background: linear-gradient(
+      115deg,
+      transparent 30%,
+      rgba(232, 200, 120, 0.45) 50%,
+      transparent 70%
+    );
+    background-size: 200% 100%;
+    animation: tarot-shimmer 3.5s linear infinite;
+  }
+
+  /* 主题作用域 class（备选方案：当某些样式无法纯 class 字符串表达时使用） */
+  .theme-mystical {
+    --tarot-page-bg: #0f0a2e;
+    --tarot-page-text: #f4d03f;
+  }
+  .theme-golden {
+    --tarot-page-bg: #3d1f1f;
+    --tarot-page-text: #e8c878;
+  }
+  .theme-minimal {
+    --tarot-page-bg: #f5f5f5;
+    --tarot-page-text: #000000;
+  }
+}
