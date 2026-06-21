@@ -77,9 +77,10 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/posts/**", "/api/tarot/**", "/api/topics/**", "/api/stories", "/api/stories/**", "/api/moods/**", "/api/echo/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/tarot/reading", "/api/tarot/draw").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/posts/*/comments").permitAll()
+                        // 内容浏览公开（GET）：帖子/评论/塔罗牌组/话题/故事/心情/共鸣/统计
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**", "/api/tarot/**", "/api/topics/**", "/api/stories", "/api/stories/**", "/api/moods/**", "/api/echo/**", "/api/stats/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
+                        // 写操作 + 个人化功能（塔罗抽牌/解读/运势/花园/胶囊等）均需登录，走 anyRequest().authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e

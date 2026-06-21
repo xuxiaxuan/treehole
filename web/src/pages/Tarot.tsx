@@ -55,6 +55,11 @@ export default function Tarot() {
 
   /** AI 抽牌：调后端拿到 3 个 cardId，从本地 deck 查找对应牌 */
   const startDraw = async () => {
+    // 未登录用户可以看牌组（GET 公开），但抽牌（POST）需登录
+    if (!user) {
+      nav('/login')
+      return
+    }
     if (deck.length === 0 || drawing) return
     setDrawing(true)
     setDrawError(null)
@@ -228,13 +233,24 @@ export default function Tarot() {
                   <Loader2 size={16} className="animate-spin" />
                   {drawing ? 'AI 选牌中…' : '准备牌组…'}
                 </>
-              ) : (
+              ) : user ? (
                 <>
                   <Wand2 size={16} />
                   AI 为我抽牌
                 </>
+              ) : (
+                <>
+                  <Wand2 size={16} />
+                  登录后占卜
+                </>
               )}
             </Button>
+
+            {!user && (
+              <p className="text-xs opacity-70">
+                塔罗占卜需登录后使用 · 未登录可浏览牌组
+              </p>
+            )}
 
             {drawError && (
               <p className="text-sm text-red-600">{drawError}</p>

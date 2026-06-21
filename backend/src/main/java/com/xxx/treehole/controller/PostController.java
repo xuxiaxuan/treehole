@@ -40,8 +40,11 @@ public class PostController {
     public Result<PostListVO> list(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) Integer type) {
-        return Result.success(postService.list(page, size, type));
+            @RequestParam(required = false) Integer type,
+            @RequestParam(defaultValue = "new") String sort,
+            @RequestParam(required = false) String mood,
+            @RequestParam(required = false) Boolean anonymous) {
+        return Result.success(postService.list(page, size, type, sort, mood, anonymous));
     }
 
     /** 搜索：按 content 关键词模糊匹配 */
@@ -52,7 +55,7 @@ public class PostController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) Integer type) {
         if (q == null || q.trim().isEmpty()) {
-            return Result.success(postService.list(page, size, type));
+            return Result.success(postService.list(page, size, type, "new", null, null));
         }
         return Result.success(postService.search(q.trim(), page, size, type));
     }

@@ -5,6 +5,8 @@ import PostCard from '@/components/PostCard'
 import DailyFortuneCard from '@/components/DailyFortuneCard'
 import DailyTopicCard from '@/components/DailyTopicCard'
 import EchoBanner from '@/components/EchoBanner'
+import PlazaStatsBar from '@/components/PlazaStats'
+import PostFilters, { POST_FILTERS, type FilterPreset } from '@/components/PostFilters'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loader2, Leaf, PenLine, ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
@@ -16,17 +18,21 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const size = 20
 
+  // 筛选 Tab
+  const [activeFilter, setActiveFilter] = useState<string>('new')
+  const filterRef = useRef<FilterPreset>(POST_FILTERS[0])
+
   // 搜索
   const [query, setQuery] = useState('')
   const [activeQuery, setActiveQuery] = useState('')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const load = async (p: number, q: string = activeQuery) => {
+  const load = async (p: number, filter: FilterPreset, q: string = activeQuery) => {
     setLoading(true)
     try {
       const data = q.trim()
-        ? await postApi.search(q.trim(), p, size)
-        : await postApi.list(p, size)
+        ? await postApi.search(q.trim(), p, size, filter.params.type)
+        : await postApi.list({ ...filter.params, page: p, size })
       setPosts(data.list)
       setTotal(data.total)
       setPage(p)
@@ -36,9 +42,15 @@ export default function Home() {
   }
 
   useEffect(() => {
-    load(1, '')
+    load(1, POST_FILTERS[0], '')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const onFilterChange = (preset: FilterPreset) => {
+    setActiveFilter(preset.key)
+    filterRef.current = preset
+    load(1, preset)
+  }
 
   // 输入防抖 400ms
   const onQueryChange = (v: string) => {
@@ -46,39 +58,52 @@ export default function Home() {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
       setActiveQuery(v)
-      load(1, v)
+      load(1, filterRef.current, v)
     }, 400)
   }
 
   const clearSearch = () => {
     setQuery('')
     setActiveQuery('')
-    load(1, '')
+    load(1, filterRef.current, '')
   }
 
   const totalPages = Math.max(1, Math.ceil(total / size))
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-      {/* Hero 区：治愈系标题 */}
-      <section className="mb-6 text-center">
-        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-forest-50 px-3 py-1 text-xs font-medium text-forest-700">
-          <Leaf size={12} className="animate-float" />
-          一片可以安心说话的森林
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+      {/* Hero 区：带浮动装饰的治愈标题 */}
+      <section className="relative mb-6 overflow-hidden rounded-3xl border border-cream-200/70 bg-gradient-to-br from-forest-50/60 via-cream-50/40 to-sage-50/40 p-8 text-center shadow-soft">
+        {/* 装饰元素：四角浮动 emoji */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <span className="absolute left-[10%] top-[15%] animate-float text-2xl opacity-30">🍃</span>
+          <span className="absolute right-[12%] top-[20%] animate-float text-2xl opacity-30" style={{ animationDelay: '1.5s' }}>🌙</span>
+          <span className="absolute bottom-[15%] left-[20%] animate-float text-xl opacity-25" style={{ animationDelay: '2.5s' }}>✨</span>
+          <span className="absolute bottom-[20%] right-[18%] animate-float text-xl opacity-25" style={{ animationDelay: '0.8s' }}>🌱</span>
         </div>
-        <h1 className="font-serif text-3xl font-bold text-forest-800 sm:text-4xl">
-          广场
-        </h1>
-        <p className="mt-2 text-sm text-sage-500">
-          倾听他人的故事，或留下你的心事
-        </p>
+
+        <div className="relative">
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-cream-50/80 px-3 py-1 text-xs font-medium text-forest-700 backdrop-blur-sm">
+            <Leaf size={12} className="animate-float text-forest-600" />
+            一片可以安心说话的森林
+          </div>
+          <h1 className="font-serif text-4xl font-bold text-gradient-forest sm:text-5xl">
+            树洞广场
+          </h1>
+          <p className="mt-2 text-sm text-sage-500">
+            倾听他人的故事 · 或留下你的心事
+          </p>
+        </div>
       </section>
 
       {/* 共鸣信号 Banner（搜索时不展示，避免抢焦点） */}
       {!activeQuery && <EchoBanner />}
 
+      {/* 统计概览条（搜索时不展示） */}
+      {!activeQuery && <PlazaStatsBar />}
+
       {/* 搜索框 */}
-      <div className="mb-6 relative">
+      <div className="mb-4 relative">
         <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sage-400" />
         <Input
           placeholder="搜索广场上的树洞…"
@@ -97,11 +122,16 @@ export default function Home() {
         )}
       </div>
 
-      {/* AI 每日运势（仅登录用户可见；搜索时不展示避免抢焦点） */}
-      {!activeQuery && <DailyFortuneCard />}
+      {/* 筛选 Tab（搜索时不展示，避免认知冲突） */}
+      {!activeQuery && (
+        <PostFilters active={activeFilter} onChange={onFilterChange} />
+      )}
 
-      {/* 每日话题（搜索时不展示） */}
-      {!activeQuery && <DailyTopicCard />}
+      {/* AI 每日运势（仅"最新" tab 展示，避免抢焦点） */}
+      {!activeQuery && activeFilter === 'new' && <DailyFortuneCard />}
+
+      {/* 每日话题（仅"最新" tab） */}
+      {!activeQuery && activeFilter === 'new' && <DailyTopicCard />}
 
       {/* 当前搜索状态提示 */}
       {activeQuery && (
@@ -150,9 +180,9 @@ export default function Home() {
         </div>
       )}
 
-      {/* 帖子列表 */}
+      {/* 帖子列表（桌面端 2 列，移动端 1 列） */}
       {!loading && posts.length > 0 && (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {posts.map((p) => (
             <PostCard key={p.id} post={p} />
           ))}
@@ -166,7 +196,7 @@ export default function Home() {
             variant="outline"
             size="sm"
             disabled={page <= 1}
-            onClick={() => load(page - 1)}
+            onClick={() => load(page - 1, filterRef.current)}
             className="gap-1"
           >
             <ChevronLeft size={16} />
@@ -181,7 +211,7 @@ export default function Home() {
             variant="outline"
             size="sm"
             disabled={page >= totalPages}
-            onClick={() => load(page + 1)}
+            onClick={() => load(page + 1, filterRef.current)}
             className="gap-1"
           >
             下一页
