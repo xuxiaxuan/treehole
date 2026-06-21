@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ============================================================
+  # 后端：Maven 编译 + 测试（用 H2 内存库，无需 MySQL）
+  # ============================================================
+  backend:
+    name: Backend (Maven test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Compile
+        run: ./mvnw -B -DskipTests compile
+
+      - name: Test
+        run: ./mvnw -B test
+
+      - name: Upload failure logs on error
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: backend/target/surefire-reports/
+          retention-days: 7
+
+  # ============================================================
+  # 前端：用户端 + 管理端 类型检查 + 构建
+  # ============================================================
+  web:
+    name: Web (type-check + build)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [web, admin-web]
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: https://example.com/api

@@ -229,12 +229,11 @@ public class EchoService {
             List<Post> posts = postMapper.selectBatchIds(postIds);
             Map<Long, Post> postMap = new HashMap<>();
             for (Post p : posts) postMap.put(p.getId(), p);
-            postVOs = members.stream()
+            postVOs = postService.toVOList(members.stream()
                     .map(m -> postMap.get(m.getPostId()))
                     .filter(java.util.Objects::nonNull)
                     .filter(p -> p.getStatus() != null && p.getStatus() == 0)
-                    .map(postService::toVO)
-                    .toList();
+                    .toList());
         }
         return EchoClusterDetailVO.from(c, postVOs, isArchived(c), isRevealed(c));
     }

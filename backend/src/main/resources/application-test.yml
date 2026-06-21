@@ -24,3 +24,8 @@ jwt:
 # 测试默认走 NoopAiService（零网络依赖）
 ai:
   enabled: false
+
+# 测试环境关闭限流（避免 bucket 跨测试累计触发 429）
+app:
+  ratelimit:
+    enabled: false

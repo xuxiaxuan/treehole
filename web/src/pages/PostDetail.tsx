@@ -17,6 +17,7 @@ import TarotCardMini from '@/components/TarotCardMini'
 import CommentSection from '@/components/CommentSection'
 import DanmakuOverlay from '@/components/DanmakuOverlay'
 import { MoodBadge } from '@/components/PostCard'
+import { isTarotData, type TarotPostData } from '@/api/post'
 import { useTarotThemeStore } from '@/store/tarotTheme'
 import { TAROT_THEMES } from '@/lib/tarotThemes'
 import { getCardIconByName } from '@/lib/tarotIcons'
@@ -169,20 +170,20 @@ export default function PostDetail() {
         )}
 
         {/* 塔罗牌展示 */}
-        {isTarot && post.tarotData && (
+        {isTarot && isTarotData(post.tarotData) && (
           <div className={cn('mb-5 rounded-xl border p-4', theme.cardBorderClass, 'bg-clay-50/60')}>
             <div className={cn('mb-3 flex items-center gap-1.5 text-xs font-medium', theme.cardTextClass)}>
               <Sparkles size={12} />
               抽到的牌 · {theme.name}
             </div>
             <div className="flex flex-wrap gap-2">
-              {(post.tarotData as any).cards?.map((c: any, i: number) => (
+              {(post.tarotData as TarotPostData).cards.map((c, i) => (
                 <TarotCardMini
                   key={i}
                   name={c.name}
                   nameEn={c.nameEn}
                   icon={getCardIconByName(c.name, c.nameEn)}
-                  isReversed={!!c.isReversed}
+                  isReversed={!!c.isReversed || !!c.reversed}
                   theme={theme}
                   size="md"
                 />

@@ -10,6 +10,7 @@ import com.xxx.treehole.dto.post.PostListVO;
 import com.xxx.treehole.dto.post.PostVO;
 import com.xxx.treehole.dto.post.WarmReplyVO;
 import com.xxx.treehole.entity.Like;
+import com.xxx.treehole.entity.Notification;
 import com.xxx.treehole.entity.Post;
 import com.xxx.treehole.entity.User;
 import com.xxx.treehole.mapper.LikeMapper;
@@ -19,16 +20,23 @@ import com.xxx.treehole.security.SecurityUtils;
 import com.xxx.treehole.service.ai.AiService;
 import com.xxx.treehole.service.ai.ModerationResult;
 import com.xxx.treehole.service.ai.SummarizeResult;
-import com.xxx.treehole.entity.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 帖子业务：发帖 / 列表 / 详情 / 点赞 / 温暖回复 / AI 摘要。
@@ -86,17 +94,43 @@ public class PostService {
         return post.getId();
     }
 
-    public PostListVO list(int page, int size, Integer postType) {
+    /**
+     * 广场列表（公开）：支持类型 / 排序 / 心情 / 匿名筛选。
+     *
+     * @param postType  帖子类型：0=树洞 1=塔罗 2=Wordle 3=涂鸦
+     * @param sort      排序：new=最新（默认） / hot=热门（近 7 天按 like_count 倒序）
+     * @param mood      心情筛选：calm/sad/anxious/warm/grateful
+     * @param anonymous 是否只看匿名帖
+     */
+    public PostListVO list(int page, int size, Integer postType, String sort, String mood, Boolean anonymous) {
         LambdaQueryWrapper<Post> q = new LambdaQueryWrapper<>();
-        q.eq(Post::getStatus, 0).orderByDesc(Post::getCreatedAt);
+        q.eq(Post::getStatus, 0);
         if (postType != null) {
             q.eq(Post::getPostType, postType);
+        }
+        if (mood != null && !mood.isBlank()) {
+            q.eq(Post::getMood, mood);
+        }
+        if (Boolean.TRUE.equals(anonymous)) {
+            q.eq(Post::getIsAnonymous, 1);
+        }
+
+        // 排序策略
+        if ("hot".equalsIgnoreCase(sort)) {
+            // 热门：近 7 天 + 按点赞数倒序（同赞数按时间倒序）
+            LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
+            q.ge(Post::getCreatedAt, weekAgo)
+                    .orderByDesc(Post::getLikeCount)
+                    .orderByDesc(Post::getCreatedAt);
+        } else {
+            // 默认：最新
+            q.orderByDesc(Post::getCreatedAt);
         }
 
         Page<Post> p = postMapper.selectPage(new Page<>(page, size), q);
         PostListVO vo = new PostListVO();
         vo.setTotal(p.getTotal());
-        vo.setList(p.getRecords().stream().map(this::toVO).toList());
+        vo.setList(toVOList(p.getRecords()));
         return vo;
     }
 
@@ -115,7 +149,7 @@ public class PostService {
         Page<Post> p = postMapper.selectPage(new Page<>(page, size), wrapper);
         PostListVO vo = new PostListVO();
         vo.setTotal(p.getTotal());
-        vo.setList(p.getRecords().stream().map(this::toVO).toList());
+        vo.setList(toVOList(p.getRecords()));
         return vo;
     }
 
@@ -142,7 +176,7 @@ public class PostService {
         Page<Post> p = postMapper.selectPage(new Page<>(page, size), q);
         PostListVO vo = new PostListVO();
         vo.setTotal(p.getTotal());
-        vo.setList(p.getRecords().stream().map(this::toVO).toList());
+        vo.setList(toVOList(p.getRecords()));
         return vo;
     }
 
@@ -156,7 +190,7 @@ public class PostService {
         Page<Post> p = postMapper.selectPage(new Page<>(page, size), q);
         PostListVO vo = new PostListVO();
         vo.setTotal(p.getTotal());
-        vo.setList(p.getRecords().stream().map(this::toAdminVO).toList());
+        vo.setList(toAdminVOList(p.getRecords()));
         return vo;
     }
 
@@ -243,41 +277,113 @@ public class PostService {
 
     /**
      * Entity -> VO（用户端）：匿名帖隐藏作者、当前用户点赞状态。
+     * 单帖详情用；列表场景请用 {@link #toVOList} 避免 N+1。
      */
     public PostVO toVO(Post post) {
-        PostVO vo = buildBaseVO(post);
-
-        if (vo.getIsAnonymous()) {
-            vo.setAuthorNickname("匿名用户");
-            vo.setAuthorAvatarUrl(null);
-            vo.setAuthorId(null);
-        } else {
-            fillAuthor(vo, post.getUserId());
-        }
-
-        // 未登录场景：liked=false
-        try {
-            Long curUserId = SecurityUtils.currentUserId();
-            Long liked = likeMapper.selectCount(
-                    new LambdaQueryWrapper<Like>()
-                            .eq(Like::getUserId, curUserId)
-                            .eq(Like::getPostId, post.getId()));
-            vo.setLiked(liked != null && liked > 0);
-        } catch (Exception e) {
-            vo.setLiked(false);
-        }
-        return vo;
+        return toVOList(List.of(post)).get(0);
     }
 
     /**
      * Entity -> VO（管理端）：不匿名化、不查 liked。
-     * 用于用户详情页的发帖历史展示（含真实作者）。
+     * 单帖用；列表场景请用 {@link #toAdminVOList}。
      */
     public PostVO toAdminVO(Post post) {
-        PostVO vo = buildBaseVO(post);
-        fillAuthor(vo, post.getUserId());
-        vo.setLiked(false);
-        return vo;
+        return toAdminVOList(List.of(post)).get(0);
+    }
+
+    /**
+     * 批量转 VO（用户端）：避免列表场景的 N+1 查询。
+     * <p>
+     * 优化点（原先每帖 2 次额外查询，20 帖 = 40 次 SQL）：
+     * <ul>
+     *   <li>一次 selectBatchIds 拉所有作者</li>
+     *   <li>一次 likeMapper.selectList(in postIds) 拉当前用户所有 liked</li>
+     * </ul>
+     */
+    public List<PostVO> toVOList(List<Post> posts) {
+        if (posts.isEmpty()) return List.of();
+
+        // 批量查作者（仅实名帖）
+        Set<Long> authorIds = posts.stream()
+                .filter(p -> p.getIsAnonymous() == null || p.getIsAnonymous() == 0)
+                .map(Post::getUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, User> authorMap = authorIds.isEmpty()
+                ? Map.of()
+                : userMapper.selectBatchIds(authorIds).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
+        // 批量查当前用户 liked 的 post id
+        Set<Long> likedIds = batchLikedIds(posts);
+
+        return posts.stream().map(p -> {
+            PostVO vo = buildBaseVO(p);
+            if (vo.getIsAnonymous()) {
+                vo.setAuthorNickname("匿名用户");
+                vo.setAuthorAvatarUrl(null);
+                vo.setAuthorId(null);
+            } else {
+                User author = authorMap.get(p.getUserId());
+                if (author != null) {
+                    vo.setAuthorId(author.getId());
+                    vo.setAuthorNickname(author.getNickname());
+                    vo.setAuthorAvatarUrl(author.getAvatarUrl());
+                }
+            }
+            vo.setLiked(likedIds.contains(p.getId()));
+            return vo;
+        }).toList();
+    }
+
+    /**
+     * 批量转 VO（管理端）：不匿名化、不查 liked。
+     */
+    public List<PostVO> toAdminVOList(List<Post> posts) {
+        if (posts.isEmpty()) return List.of();
+        Set<Long> authorIds = posts.stream()
+                .map(Post::getUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, User> authorMap = authorIds.isEmpty()
+                ? Map.of()
+                : userMapper.selectBatchIds(authorIds).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+        return posts.stream().map(p -> {
+            PostVO vo = buildBaseVO(p);
+            User author = authorMap.get(p.getUserId());
+            if (author != null) {
+                vo.setAuthorId(author.getId());
+                vo.setAuthorNickname(author.getNickname());
+                vo.setAuthorAvatarUrl(author.getAvatarUrl());
+            }
+            vo.setLiked(false);
+            return vo;
+        }).toList();
+    }
+
+    /**
+     * 批量查当前登录用户在给定 posts 里 liked 过的 post id 集合。
+     * 未登录返回空集。
+     */
+    private Set<Long> batchLikedIds(List<Post> posts) {
+        Long curUserId;
+        try {
+            curUserId = SecurityUtils.currentUserId();
+        } catch (Exception e) {
+            return Set.of();
+        }
+        if (curUserId == null) return Set.of();
+        List<Long> postIds = posts.stream().map(Post::getId).filter(Objects::nonNull).toList();
+        if (postIds.isEmpty()) return Set.of();
+        return likeMapper.selectList(
+                        new LambdaQueryWrapper<Like>()
+                                .eq(Like::getUserId, curUserId)
+                                .in(Like::getPostId, postIds))
+                .stream()
+                .map(Like::getPostId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     /**

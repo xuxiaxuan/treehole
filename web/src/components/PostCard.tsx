@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { PostVO, postApi } from '@/api/post'
+import { PostVO, postApi, isDrawingData, isWordleData, type DrawingPostData, type WordlePostData } from '@/api/post'
 import { MOOD_META, type MoodKey } from '@/api/mood'
 import { useAuthStore } from '@/store/auth'
 import { useTarotThemeStore } from '@/store/tarotTheme'
@@ -59,17 +59,17 @@ export default function PostCard({ post: initial }: { post: PostVO }) {
   const isWordle = post.postType === 2
   const author = post.isAnonymous ? '匿名旅人' : post.authorNickname
 
-  // 涂鸦帖：从 tarotData 提取图片 base64
-  const drawingImage =
-    isDrawing && post.tarotData && (post.tarotData as any).image
-      ? (post.tarotData as any).image as string
-      : null
+  // 涂鸦帖：从 tarotData 提取图片 base64（类型守卫替代 as any）
+  const drawingData = isDrawing && isDrawingData(post.tarotData)
+    ? post.tarotData as DrawingPostData
+    : null
+  const drawingImage = drawingData?.image ?? null
 
-  // Wordle 帖：从 tarotData 提取 emoji 数组
-  const wordleEmoji =
-    isWordle && post.tarotData && Array.isArray((post.tarotData as any).emoji)
-      ? (post.tarotData as any).emoji as string[]
-      : null
+  // Wordle 帖：从 tarotData 提取 emoji 数组（类型守卫）
+  const wordleData = isWordle && isWordleData(post.tarotData)
+    ? post.tarotData as WordlePostData
+    : null
+  const wordleEmoji = wordleData?.emoji ?? null
 
   return (
     <article
